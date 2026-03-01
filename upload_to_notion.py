@@ -199,11 +199,11 @@ def _extract_price_table(content: str) -> list:
 
 def _extract_photo_urls(content: str) -> list:
     """
-    ■ 3. 임장 사진 아카이브 섹션에서 URL을 추출합니다.
+    ■ 4. 임장 사진 아카이브 섹션에서 URL을 추출합니다.
     """
     urls = []
-    # 사진 섹션 찾기
-    section_pattern = r'##\s*■\s*3\.\s*임장 사진.*?\n(.*?)(?=\n---|\n##\s*■|$)'
+    # 사진 섹션 찾기 (섹션 번호 4로 수정)
+    section_pattern = r'##\s*■\s*4\.\s*임장 사진.*?\n(.*?)(?=\n---|\n##\s*■|$)'
     match = re.search(section_pattern, content, re.DOTALL)
     if match:
         section = match.group(1)
@@ -215,11 +215,11 @@ def _extract_photo_urls(content: str) -> list:
 
 def _extract_additional_comments(content: str) -> str:
     """
-    ■ 추가 의견 섹션의 내용을 추출합니다.
+    ■ 3. 추가 의견 섹션의 내용을 추출합니다.
     '>' 로 시작하는 가이드 라인은 제외합니다.
     """
-    # 추가 의견 섹션 찾기
-    section_pattern = r'##\s*■\s*추가 의견.*?\n(.*?)$'
+    # 추가 의견 섹션 찾기 (섹션 번호 3 반영 및 다음 섹션 이전까지만 추출)
+    section_pattern = r'##\s*■\s*(?:3\.\s*)?추가 의견.*?\n(.*?)(?=\n---|\n##\s*■|$)'
     match = re.search(section_pattern, content, re.DOTALL)
     if match:
         lines = match.group(1).split('\n')

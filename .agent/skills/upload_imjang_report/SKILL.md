@@ -19,8 +19,8 @@ description: 사용자의 임장 기록(텍스트)을 받아 네이버 부동산
 
 ### Step 1. 사용자 입력 수신
 
-사용자가 텍스트로 임장 후기를 줍니다. 형태는 자유롭습니다.
-에이전트는 텍스트에서 다음 정보를 추출해야 합니다:
+사용자가 텍스트로 임장 후기를 주고, **임장 사진 파일**을 함께 전달할 수 있습니다.
+에이전트는 텍스트에서 정보를 추출하고, 제공된 사진 파일들을 안전하게 보관해야 합니다.
 
 **필수 추출 항목:**
 - 아파트명 (필수)
@@ -49,6 +49,7 @@ description: 사용자의 임장 기록(텍스트)을 받아 네이버 부동산
 | 5분 이내 | 3점 | |
 | 7분 이내 | 2점 | |
 | 10분 이상 | 1점 | |
+
 
 > **현장상권, 현장환경, 현장단지**는 사용자가 직접 1~5점을 부여합니다.
 > 사용자가 점수를 주지 않으면 반드시 물어봅니다.
@@ -95,15 +96,31 @@ description: 사용자의 임장 기록(텍스트)을 받아 네이버 부동산
 > "현장교통, 현장학군 점수가 빠져있어요. 각각 1~5점으로 평가해주세요.  
 > 또한, 소음이나 냄새에 대한 체감도 알려주시면 좋겠어요."
 
-### Step 4. 마크다운 파일 생성
+### Step 4. 마크다운 파일 생성 및 사진 자동화
 
 ⚠️ **template.md는 절대 수정하지 않습니다.** 항상 새 파일을 생성합니다.
 
+#### 4-1. 사진 처리 및 GitHub 업로드
+사용자가 사진 파일을 제공한 경우, 해당 사진들을 GitHub에 업로드하여 외부 참조 가능한 URL을 생성합니다.
+
+1. **폴더 생성**: `c:\develop\notion-housr\photos\[ApartmentName_English]_[Date]\` 폴더를 생성합니다. 
+   - **중요**: URL 인코딩 이슈 및 한글 오타 방지를 위해 폴더명은 반드시 영어를 사용합니다.
+2. **사진 저장**: 사용자가 보낸 이미지 파일들을 해당 폴더에 저장합니다.
+   - **중요**: 이미지 파일명 역시 반드시 영어를 사용합니다. (예: `living_room_01.jpg`, `complex_gate.jpg` 등)
+3. **Git 업로드**:
+   - `git add photos/`
+   - `git commit -m "Add photos for [ApartmentName] [Date]"`
+   - `git push`
+4. **URL 생성**: 업로드된 각 사진에 대해 GitHub 이미지 URL을 생성합니다.
+   - 형식: `https://github.com/devsmilekang/notion-house/blob/main/photos/[ApartmentName_English]_[Date]/[English_FileName]?raw=true`
+   - 저장소 정보: `devsmilekang/notion-house`, 브랜치: `main`
+
+#### 4-2. 리포트 파일 생성
 1. `template.md`를 읽어서 내용을 복사
-2. 수집한 데이터로 각 필드를 채움
-3. 새 파일명 규칙: `임장기록_[아파트명]_[날짜].md`
-   - 예: `임장기록_롯데캐슬클라시아_20260228.md`
-4. `c:\develop\notion-housr\records\` 폴더에 저장 (없으면 생성)
+2. 수집한 데이터(기본 정보, 시세, 점수 등)로 각 필드를 채움
+3. **사진 섹션 채우기**: 생성된 GitHub Raw URL들을 `## ■ 4. 임장 사진 아카이브` 섹션에 한 줄에 하나씩 적습니다.
+4. 새 파일명 규칙: `임장기록_[아파트명]_[날짜].md`
+5. `c:\develop\notion-housr\records\` 폴더에 저장 (없으면 생성)
 
 ### Step 5. 노션 업로드
 
@@ -111,7 +128,7 @@ description: 사용자의 임장 기록(텍스트)을 받아 네이버 부동산
    ```
    python upload_to_notion.py records/임장기록_롯데캐슬클라시아_20260228.md
    ```
-2. 스크립트는 `.env`에서 `NOTION_API_KEY`와 `NOTION_DATABASE_ID`를 읽어 사용
+2. 스크립트가 리포트 파일의 GitHub Raw URL을 읽어 노션의 `image` 블록(external)으로 자동 업로드합니다.
 3. 업로드 시 `input()` 확인 프롬프트가 나오므로, 파이프로 `y`를 전달:
    ```
    echo y | python upload_to_notion.py records/임장기록_...md
